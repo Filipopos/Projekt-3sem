@@ -1,0 +1,114 @@
+#include "Game.h"
+#include <iostream>
+
+Game::Game()
+    : m_window(sf::VideoMode(800, 600), "Gierka"),
+    m_paletka(400.f, 550.f, 100.f, 20.f, 400.f),
+    m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
+{
+    m_window.setFramerateLimit(60);
+    loadLevel();
+}
+
+//generowanie stone
+void Game::loadLevel()
+{
+    const int ROWS = 7;
+    const int COLS = 6;
+
+    const float GAP = 2.f;
+    const float STONE_H = 25.f;
+    const float START_Y = 50.f;
+
+    float STONE_W =
+        (m_window.getSize().x - (COLS + 1) * GAP) / COLS;
+
+    m_bloki.clear();
+    m_bloki.reserve(ROWS * COLS);
+
+    for (int r = 0; r < ROWS; r++)
+    {
+        for (int c = 0; c < COLS; c++)
+        {
+            float x = GAP + c * (STONE_W + GAP);
+            float y = START_Y + r * (STONE_H + GAP);
+
+            int hp = 1;
+            if (r < 2) hp = 3;
+            else if (r < 4) hp = 2;
+
+            m_bloki.emplace_back(
+                sf::Vector2f(x, y),
+                sf::Vector2f(STONE_W, STONE_H),
+                hp
+            );
+        }
+    }
+}
+
+//petla glowna
+void Game::run()
+{
+    while (m_window.isOpen())
+    {
+        processEvents();
+        update(m_deltaClock.restart());
+        render();
+    }
+}
+
+
+void Game::processEvents()
+{
+    sf::Event event;
+    while (m_window.pollEvent(event))
+    {
+        if (event.type == sf::Event::Closed)
+            m_window.close();
+    }
+}
+
+void Game::update(sf::Time dt)
+{
+    float t = dt.asSeconds();
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)
+        || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        m_paletka.moveLeft(t);
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)
+        || sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        m_paletka.moveRight(t);
+
+    m_paletka.clampToBounds(m_window.getSize().x);
+    m_pilka.move(t);
+    m_pilka.collideWalls(m_window.getSize().x, m_window.getSize().y);
+
+    // kolizje: paletka
+    m_pilka.collidePaddle(m_paletka);
+
+    // kolizje: stone
+    for (Stone& s : m_bloki)
+    {
+        if (!s.isDestroyed() &&
+            m_pilka.getBounds().intersects(s.getBounds()))
+        {
+            s.hit();
+            m_pilka.bounceY();
+        }
+    }
+}
+
+
+void Game::render()
+{
+    m_window.clear(sf::Color(20, 20, 30));
+
+    m_paletka.draw(m_window);
+    m_pilka.draw(m_window);
+
+    for (Stone& s : m_bloki)
+        s.draw(m_window);
+
+    m_window.display();
+}

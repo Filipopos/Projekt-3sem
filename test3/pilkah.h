@@ -1,0 +1,85 @@
+﻿#pragma once
+#include <SFML/Graphics.hpp>
+#include <cmath>
+#include <iostream>
+#include "Paddle.h"
+
+class Pilka {
+private:
+    float x, y;
+    float vx, vy;
+    float radius;
+    sf::CircleShape shape;
+
+public:
+    Pilka(float poczX, float poczY, float ppredX, float ppredY, float r)
+    {
+        x = poczX;
+        y = poczY;
+        vx = ppredX;
+        vy = ppredY;
+        radius = r;
+        shape.setRadius(radius);
+        shape.setOrigin(radius, radius);
+        shape.setPosition(x, y);
+        shape.setFillColor(sf::Color::White);
+    }
+
+    void move(float dTime) {
+        x += vx * dTime * 60.f;
+        y += vy * dTime * 60.f;
+        shape.setPosition(x, y);
+    }
+
+    void bounceX() { vx = -vx; }
+    void bounceY() { vy = -vy; }
+
+    void collideWalls(float width, float height) {
+        if (x - radius <= 0.f) {
+            x = radius;
+            bounceX();
+        }
+        else if (x + radius >= width) {
+            x = width - radius;
+            bounceX();
+        }
+
+        if (y - radius <= 0.f) {
+            y = radius;
+            bounceY();
+        }
+        shape.setPosition(x, y);
+    }
+
+    bool collidePaddle(const Paletka& p) {
+        float palX = p.getX();
+        float palY = p.getY();
+        float palW = p.getSzerokosc();
+        float palH = p.getWysokosc();
+
+        if (x >= palX - palW / 2 && x <= palX + palW / 2) {
+            if ((y + radius) >= (palY - palH / 2) && (y - radius) < (palY - palH / 2)) {
+                vy = -std::abs(vy);
+                y = (palY - palH / 2) - radius;
+                shape.setPosition(x, y);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void draw(sf::RenderTarget& target) {
+        target.draw(shape);
+    }
+
+    float getX() const { return x; }
+    float getY() const { return y; }
+    float getVx() const { return vx; }
+    float getVy() const { return vy; }
+    float getRadius() const { return radius; }
+
+    sf::FloatRect getBounds() const {
+        return shape.getGlobalBounds();
+    }
+
+};

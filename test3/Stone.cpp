@@ -1,0 +1,48 @@
+#include "Stone.h"
+
+// Pojedyncza definicja tablicy — poprawne miejsce
+const std::array<sf::Color, 4> Stone::colorLut = {
+    sf::Color::Transparent,
+    sf::Color::Red,
+    sf::Color::Yellow,
+    sf::Color::Green
+};
+
+Stone::Stone(sf::Vector2f pos, sf::Vector2f size, int lives)
+    : hp(lives), destroyed(false)
+{
+    setSize(size);
+    setPosition(pos);
+    setFillColor(colorLut[lives]);
+    setOutlineColor(sf::Color::Black);
+    setOutlineThickness(1.f);
+}
+
+bool Stone::isDestroyed() const {
+    return destroyed;
+}
+
+sf::FloatRect Stone::getBounds() const {
+    return getGlobalBounds();
+}
+
+void Stone::hit()
+{
+    if (destroyed) return;
+
+    hp--;
+    if (hp <= 0) {
+        destroyed = true;
+        setFillColor(sf::Color::Transparent);
+    }
+    else {
+        setFillColor(colorLut[hp]);
+    }
+}
+
+void Stone::draw(sf::RenderTarget& window)
+{
+    if (!destroyed)
+        window.draw(*this);
+}
+
