@@ -1,0 +1,54 @@
+#pragma once
+#include <SFML/Graphics.hpp>
+#include <array>
+
+class Brick : public sf::RectangleShape {
+private:
+    int punktyZycia;          // 0–3
+    bool jestZniszczony;
+    static const std::array<sf::Color, 4> colorLut;
+
+public:
+    Brick(sf::Vector2f pozycja, sf::Vector2f rozmiar, int L)
+    {
+        punktyZycia = L;
+        jestZniszczony = false;
+    
+        setSize(rozmiar);
+        setPosition(pozycja);
+        setFillColor(colorLut[L]);
+        setOutlineColor(sf::Color::White);
+        setOutlineThickness(1.f);
+    }
+
+    void trafienie() {
+        if (jestZniszczony) return;
+        punktyZycia--;
+        if (punktyZycia <= 0) {
+            jestZniszczony = true;
+            setFillColor(sf::Color::Transparent);
+        }
+        else {
+            setFillColor(colorLut[punktyZycia]);
+        }
+    }
+
+    bool czyZniszczony() const { return jestZniszczony; }
+
+    void draw(sf::RenderWindow& win) {
+        if (!jestZniszczony)
+            win.draw(*this);
+    }
+
+    sf::FloatRect getBounds() const {
+        return getGlobalBounds();
+    }
+};
+
+// LUT kolorow zaleznych od HP
+const std::array<sf::Color, 4> Brick::colorLut = {
+    sf::Color::Transparent,   // 0 HP
+    sf::Color::Red,           // 1 HP
+    sf::Color::Yellow,        // 2 HP
+    sf::Color::Green          // 3 HP
+};
