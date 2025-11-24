@@ -1,6 +1,6 @@
 #include "Stone.h"
 
-// Pojedyncza definicja tablicy — poprawne miejsce
+
 const std::array<sf::Color, 4> Stone::colorLut = {
     sf::Color::Transparent,
     sf::Color::Red,

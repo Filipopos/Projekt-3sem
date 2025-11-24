@@ -1,52 +1,16 @@
-#include "Game.h"
-#include <iostream>
+﻿#include "Game.h"
 
 Game::Game()
-    : m_window(sf::VideoMode(800, 600), "Gierka"),
-    m_paletka(400.f, 550.f, 100.f, 20.f, 400.f),
-    m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
+    : m_window(sf::VideoMode({ 800, 600 }), "Arkanoid")
+    , m_menu(m_window.getSize().x, m_window.getSize().y)
+    , m_paletka(400.f, 550.f, 100.f, 20.f, 400.f)
+    , m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
+    , m_state(GameState::Menu)
 {
     m_window.setFramerateLimit(60);
     loadLevel();
 }
 
-//generowanie stone
-void Game::loadLevel()
-{
-    const int ROWS = 7;
-    const int COLS = 6;
-
-    const float GAP = 2.f;
-    const float STONE_H = 25.f;
-    const float START_Y = 50.f;
-
-    float STONE_W =
-        (m_window.getSize().x - (COLS + 1) * GAP) / COLS;
-
-    m_bloki.clear();
-    m_bloki.reserve(ROWS * COLS);
-
-    for (int r = 0; r < ROWS; r++)
-    {
-        for (int c = 0; c < COLS; c++)
-        {
-            float x = GAP + c * (STONE_W + GAP);
-            float y = START_Y + r * (STONE_H + GAP);
-
-            int hp = 1;
-            if (r < 2) hp = 3;
-            else if (r < 4) hp = 2;
-
-            m_bloki.emplace_back(
-                sf::Vector2f(x, y),
-                sf::Vector2f(STONE_W, STONE_H),
-                hp
-            );
-        }
-    }
-}
-
-//petla glowna
 void Game::run()
 {
     while (m_window.isOpen())
@@ -57,38 +21,145 @@ void Game::run()
     }
 }
 
-
 void Game::processEvents()
 {
     sf::Event event;
+
     while (m_window.pollEvent(event))
     {
         if (event.type == sf::Event::Closed)
             m_window.close();
+
+        if (event.type == sf::Event::KeyPressed)
+        {
+            sf::Keyboard::Key key = event.key.code;
+
+            // ====================== MENU ======================
+            if (m_state == GameState::Menu)
+            {
+                if (key == sf::Keyboard::Up)
+                {
+                    myDelay(200);
+                    m_menu.przesunG();
+                }
+
+                if (key == sf::Keyboard::Down)
+                {
+                    myDelay(200);
+                    m_menu.przesunD();
+                }
+
+                if (key == sf::Keyboard::Enter)
+                {
+                    int selected = m_menu.getSelectedItem();
+
+                    if (selected == 0)   // NOWA GRA
+                    {
+                        resetGameplay();
+                        m_state = GameState::Playing;
+                    }
+                    else if (selected == 2) // WYJŚCIE
+                    {
+                        m_window.close();
+                    }
+                }
+            }
+
+            // =================== GAMEPLAY ====================
+            else if (m_state == GameState::Playing)
+            {
+                if (key == sf::Keyboard::Escape)
+                    m_state = GameState::Menu;
+            }
+        }
     }
 }
 
 void Game::update(sf::Time dt)
 {
+    if (m_state == GameState::Playing)
+        updateGameplay(dt);
+}
+
+void Game::render()
+{
+    m_window.clear();
+
+    if (m_state == GameState::Menu)
+        m_menu.draw(m_window);
+    else if (m_state == GameState::Playing)
+        renderGameplay();
+
+    m_window.display();
+}
+
+
+// ======================================================
+//              >>>  IMPLEMENTACJA GAMEPLAY  <<<
+// ======================================================
+
+void Game::loadLevel()
+{
+    m_bloki.clear();
+
+    const int rows = 7;
+    const int cols = 6;
+
+    const float blockH = 25.f;
+    const float gap = 2.f;
+    const float startY = 50.f;
+
+    float blockW = (800.f - (cols + 1) * gap) / cols;
+
+    for (int r = 0; r < rows; r++)
+    {
+        for (int c = 0; c < cols; c++)
+        {
+            float x = gap + c * (blockW + gap);
+            float y = startY + r * (blockH + gap);
+
+            int hp = 1;
+            if (r < 2)      hp = 3;
+            else if (r < 4) hp = 2;
+
+            m_bloki.emplace_back(
+                sf::Vector2f(x, y),
+                sf::Vector2f(blockW, blockH),
+                hp
+            );
+        }
+    }
+}
+
+void Game::resetGameplay()
+{
+    m_paletka = Paletka(400.f, 550.f, 100.f, 20.f, 400.f);
+    m_pilka = Pilka(400.f, 200.f, 4.f, 3.f, 8.f);
+    loadLevel();
+}
+
+void Game::updateGameplay(sf::Time dt)
+{
     float t = dt.asSeconds();
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)
-        || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+    // ----- sterowanie paletką -----
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
         m_paletka.moveLeft(t);
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)
-        || sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         m_paletka.moveRight(t);
 
-    m_paletka.clampToBounds(m_window.getSize().x);
-    m_pilka.move(t);
-    m_pilka.collideWalls(m_window.getSize().x, m_window.getSize().y);
+    m_paletka.clampToBounds(800);
 
-    // kolizje: paletka
+    // ----- ruch pilki -----
+    m_pilka.move(t);
+    m_pilka.collideWalls(800, 600);
     m_pilka.collidePaddle(m_paletka);
 
-    // kolizje: stone
-    for (Stone& s : m_bloki)
+    // ----- kolizje z cegłami -----
+    for (auto& s : m_bloki)
     {
         if (!s.isDestroyed() &&
             m_pilka.getBounds().intersects(s.getBounds()))
@@ -97,18 +168,27 @@ void Game::update(sf::Time dt)
             m_pilka.bounceY();
         }
     }
+
+    // ----- usuwanie zniszczonych bloków -----
+    m_bloki.erase(
+        std::remove_if(m_bloki.begin(), m_bloki.end(),
+            [](const Stone& s) { return s.isDestroyed(); }),
+        m_bloki.end()
+    );
+
+    // ----- reset po straceniu piłki -----
+    if (m_pilka.getY() > 600)
+    {
+        resetGameplay();
+        m_state = GameState::Menu;
+    }
 }
 
-
-void Game::render()
+void Game::renderGameplay()
 {
-    m_window.clear(sf::Color(20, 20, 30));
-
     m_paletka.draw(m_window);
     m_pilka.draw(m_window);
 
-    for (Stone& s : m_bloki)
-        s.draw(m_window);
-
-    m_window.display();
+    for (auto& blok : m_bloki)
+        blok.draw(m_window);
 }

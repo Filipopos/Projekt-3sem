@@ -138,6 +138,7 @@
     <ClCompile Include="test3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="menu.h" />
     <ClInclude Include="Stone.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Paddle.h" />

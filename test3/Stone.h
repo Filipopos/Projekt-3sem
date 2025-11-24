@@ -2,53 +2,19 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 
-class Brick : public sf::RectangleShape {
+class Stone : public sf::RectangleShape {
 private:
-    int punktyZycia;          // 0–3
-    bool jestZniszczony;
+    int hp;
+    bool destroyed;
+
     static const std::array<sf::Color, 4> colorLut;
 
 public:
-    Brick(sf::Vector2f pozycja, sf::Vector2f rozmiar, int L)
-    {
-        punktyZycia = L;
-        jestZniszczony = false;
+    Stone(sf::Vector2f pos, sf::Vector2f size, int lives);
 
-        setSize(rozmiar);
-        setPosition(pozycja);
-        setFillColor(colorLut[L]);
-        setOutlineColor(sf::Color::White);
-        setOutlineThickness(1.f);
-    }
+    bool isDestroyed() const;
+    sf::FloatRect getBounds() const;
 
-    void trafienie() {
-        if (jestZniszczony) return;
-        punktyZycia--;
-        if (punktyZycia <= 0) {
-            jestZniszczony = true;
-            setFillColor(sf::Color::Transparent);
-        }
-        else {
-            setFillColor(colorLut[punktyZycia]);
-        }
-    }
-
-    bool czyZniszczony() const { return jestZniszczony; }
-
-    void draw(sf::RenderWindow& win) {
-        if (!jestZniszczony)
-            win.draw(*this);
-    }
-
-    sf::FloatRect getBounds() const {
-        return getGlobalBounds();
-    }
-};
-
-// LUT kolorow zaleznych od HP
-const std::array<sf::Color, 4> Brick::colorLut = {
-    sf::Color::Transparent,   // 0 HP
-    sf::Color::Red,           // 1 HP
-    sf::Color::Yellow,        // 2 HP
-    sf::Color::Green          // 3 HP
+    void hit();
+    void draw(sf::RenderTarget& window);
 };
