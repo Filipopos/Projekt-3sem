@@ -5,31 +5,32 @@
 #include "Paddle.h"
 #include "pilkah.h"
 #include "Stone.h"
+#include "GameState.h"
 
 class Game
 {
 private:
-    enum class GameState { Menu, Playing, Exiting };
+    enum class GameMode{ Menu, Playing, Exiting };
 
     sf::RenderWindow m_window;
     sf::Clock m_deltaClock;
 
-    GameState m_state;
+    GameMode m_state;
 
-    // MENU
+   
     Menu m_menu;
 
-    // GAMEPLAY
+   
     Paletka m_paletka;
     Pilka   m_pilka;
     std::vector<Stone> m_bloki;
 
-    // Maszyna stanów:
+    
     void processEvents();
     void update(sf::Time dt);
     void render();
 
-    // Logika gry
+    
     void updateGameplay(sf::Time dt);
     void renderGameplay();
     void loadLevel();

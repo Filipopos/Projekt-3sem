@@ -27,6 +27,13 @@ public:
         shape.setPosition(x, y);
     }
 
+    void setPosition(const sf::Vector2f& pos) {
+        x = pos.x;
+        y = pos.y;
+        shape.setPosition(x, y);
+    }
+
+
     void moveRight(float dTime) {
         x += predkosc * dTime;
         shape.setPosition(x, y);

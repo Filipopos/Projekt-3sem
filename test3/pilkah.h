@@ -31,6 +31,19 @@ public:
         shape.setPosition(x, y);
     }
 
+    void setPosition(const sf::Vector2f& pos) {
+        x = pos.x;
+        y = pos.y;
+        shape.setPosition(x, y);
+    }
+
+    void setVelocity(const sf::Vector2f& v) {
+        vx = v.x;
+        vy = v.y;
+    }
+
+
+
     void bounceX() { vx = -vx; }
     void bounceY() { vy = -vy; }
 

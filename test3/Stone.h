@@ -17,4 +17,7 @@ public:
 
     void hit();
     void draw(sf::RenderTarget& window);
+
+    int getHP() const { return hp; }
+
 };

@@ -1,11 +1,12 @@
 ﻿#include "Game.h"
+#include "GameState.h" 
 
 Game::Game()
     : m_window(sf::VideoMode({ 800, 600 }), "Arkanoid")
     , m_menu(m_window.getSize().x, m_window.getSize().y)
     , m_paletka(400.f, 550.f, 100.f, 20.f, 400.f)
     , m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
-    , m_state(GameState::Menu)
+    , m_state(GameMode::Menu)
 {
     m_window.setFramerateLimit(60);
     loadLevel();
@@ -34,18 +35,38 @@ void Game::processEvents()
         {
             sf::Keyboard::Key key = event.key.code;
 
-            // ====================== MENU ======================
-            if (m_state == GameState::Menu)
+            if (key == sf::Keyboard::F5)
+            {
+                GameState gs;
+                gs.capture(m_paletka, m_pilka, m_bloki);
+
+                if (gs.saveToFile("save.txt"))
+                    std::cout << "Zapisano gre!\n";
+            }
+
+            if (key == sf::Keyboard::F9)
+            {
+                GameState gs;
+                if (gs.loadFromFile("save.txt"))
+                {
+                    gs.apply(m_paletka, m_pilka, m_bloki);
+                    std::cout << "Wczytano gre!\n";
+                }
+            }
+
+
+//menu
+            if (m_state == GameMode::Menu)
             {
                 if (key == sf::Keyboard::Up)
                 {
-                    myDelay(200);
+                    
                     m_menu.przesunG();
                 }
 
                 if (key == sf::Keyboard::Down)
                 {
-                    myDelay(200);
+                    
                     m_menu.przesunD();
                 }
 
@@ -53,23 +74,42 @@ void Game::processEvents()
                 {
                     int selected = m_menu.getSelectedItem();
 
-                    if (selected == 0)   // NOWA GRA
+                    if (selected == 0)   
                     {
                         resetGameplay();
-                        m_state = GameState::Playing;
+                        m_state = GameMode::Playing;
                     }
-                    else if (selected == 2) // WYJŚCIE
+                    else if (selected == 1)   
+                    {
+                        GameState gs;
+                        if (gs.loadFromFile("save.txt"))
+                        {
+                            gs.apply(m_paletka, m_pilka, m_bloki);
+                            m_state = GameMode::Playing;
+                            std::cout << "Wczytano gre!\n";
+                        }
+                        else
+                        {
+                            std::cout << "Brak pliku save.txt lub blad w pliku.\n";
+                        }
+                    }
+                    else if (selected == 2)   
+                    {
+                        std::cout << "Brak systemu wynikow.\n";
+                    }
+                    else if (selected == 3) 
                     {
                         m_window.close();
                     }
                 }
+
             }
 
             // =================== GAMEPLAY ====================
-            else if (m_state == GameState::Playing)
+            else if (m_state == GameMode::Playing)
             {
                 if (key == sf::Keyboard::Escape)
-                    m_state = GameState::Menu;
+                    m_state = GameMode::Menu;
             }
         }
     }
@@ -77,7 +117,7 @@ void Game::processEvents()
 
 void Game::update(sf::Time dt)
 {
-    if (m_state == GameState::Playing)
+    if (m_state == GameMode::Playing)
         updateGameplay(dt);
 }
 
@@ -85,18 +125,18 @@ void Game::render()
 {
     m_window.clear();
 
-    if (m_state == GameState::Menu)
+    if (m_state == GameMode::Menu)
         m_menu.draw(m_window);
-    else if (m_state == GameState::Playing)
+    else if (m_state == GameMode::Playing)
         renderGameplay();
 
     m_window.display();
 }
 
 
-// ======================================================
-//              >>>  IMPLEMENTACJA GAMEPLAY  <<<
-// ======================================================
+
+//gameplay
+
 
 void Game::loadLevel()
 {
@@ -180,7 +220,7 @@ void Game::updateGameplay(sf::Time dt)
     if (m_pilka.getY() > 600)
     {
         resetGameplay();
-        m_state = GameState::Menu;
+        m_state = GameMode::Menu;
     }
 }
 

@@ -1,74 +1,82 @@
 ﻿#pragma once
 #include <SFML/Graphics.hpp>
-#include <iostream>
-#include <vector>
 
-inline void myDelay(int czas)
-{
-    sf::Clock clk;
-    while (clk.getElapsedTime().asMilliseconds() < czas) {}
-}
-
+#define MAX_LICZBA_POZIOMOW 4
 
 class Menu
 {
 private:
-    int selectedItemIndex;
+    int wybraneOpcje;
     sf::Font font;
-    sf::Text menu[3];
+    sf::Text opcje[MAX_LICZBA_POZIOMOW];
 
 public:
-    Menu(float width, float height)
+    Menu(float szerokosc, float wysokosc)
     {
-        if (!font.loadFromFile("assets/fonts/Starborn.ttf"));
-            std::cout << "Nie mogę załadować czcionki!\n";
+        wybraneOpcje = 0;
 
-        menu[0].setFont(font);
-        menu[0].setFillColor(sf::Color::Red);
-        menu[0].setString("Nowa gra");
-        menu[0].setPosition(width / 2 - 50, height / 2 - 50);
+        if (!font.loadFromFile("assets/fonts/Starborn.ttf"))
+        {
+            //std::cout << "nie moge zaladowac czcionki " << std::endl;
+        }
 
-        menu[1].setFont(font);
-        menu[1].setFillColor(sf::Color::White);
-        menu[1].setString("Wyniki");
-        menu[1].setPosition(width / 2 - 50, height / 2);
+//nowa gra
+        opcje[0].setFont(font);
+        opcje[0].setFillColor(sf::Color::Red);
+        opcje[0].setString("Nowa gra");
+        opcje[0].setCharacterSize(40);
+        opcje[0].setPosition(szerokosc / 2 - 100, wysokosc / 4);
 
-        menu[2].setFont(font);
-        menu[2].setFillColor(sf::Color::White);
-        menu[2].setString("Wyjscie");
-        menu[2].setPosition(width / 2 - 50, height / 2 + 50);
+//wczytaj gre
+        opcje[1].setFont(font);
+        opcje[1].setFillColor(sf::Color::White);
+        opcje[1].setString("Wczytaj gre");
+        opcje[1].setCharacterSize(40);
+        opcje[1].setPosition(szerokosc / 2 - 110, wysokosc / 4 + 60);
 
-        selectedItemIndex = 0;
+//wyniki
+        opcje[2].setFont(font);
+        opcje[2].setFillColor(sf::Color::White);
+        opcje[2].setString("Wyniki");
+        opcje[2].setCharacterSize(40);
+        opcje[2].setPosition(szerokosc / 2 - 80, wysokosc / 4 + 120);
+
+//wyjscie
+        opcje[3].setFont(font);
+        opcje[3].setFillColor(sf::Color::White);
+        opcje[3].setString("Wyjscie");
+        opcje[3].setCharacterSize(40);
+        opcje[3].setPosition(szerokosc / 2 - 80, wysokosc / 4 + 180);
     }
 
     void draw(sf::RenderWindow& window)
     {
-        for (int i = 0; i < 3; i++)
-            window.draw(menu[i]);
+        for (int i = 0; i < MAX_LICZBA_POZIOMOW; i++)
+            window.draw(opcje[i]);
     }
 
     void przesunG()
     {
-        if (selectedItemIndex - 1 >= 0)
+        if (wybraneOpcje - 1 >= 0)
         {
-            menu[selectedItemIndex].setFillColor(sf::Color::White);
-            selectedItemIndex--;
-            menu[selectedItemIndex].setFillColor(sf::Color::Red);
+            opcje[wybraneOpcje].setFillColor(sf::Color::White);
+            wybraneOpcje--;
+            opcje[wybraneOpcje].setFillColor(sf::Color::Red);
         }
     }
 
     void przesunD()
     {
-        if (selectedItemIndex + 1 < 3)
+        if (wybraneOpcje + 1 < MAX_LICZBA_POZIOMOW)
         {
-            menu[selectedItemIndex].setFillColor(sf::Color::White);
-            selectedItemIndex++;
-            menu[selectedItemIndex].setFillColor(sf::Color::Red);
+            opcje[wybraneOpcje].setFillColor(sf::Color::White);
+            wybraneOpcje++;
+            opcje[wybraneOpcje].setFillColor(sf::Color::Red);
         }
     }
 
     int getSelectedItem() const
     {
-        return selectedItemIndex;
+        return wybraneOpcje;
     }
 };
