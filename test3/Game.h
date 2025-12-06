@@ -21,9 +21,14 @@ private:
     Menu m_menu;
 
    
+
+   
     Paletka m_paletka;
     Pilka   m_pilka;
     std::vector<Stone> m_bloki;
+    int m_score;
+    sf::Font m_font;
+    sf::Text m_scoreText;
 
     
     void processEvents();

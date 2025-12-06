@@ -7,9 +7,21 @@ Game::Game()
     , m_paletka(400.f, 550.f, 100.f, 20.f, 400.f)
     , m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
     , m_state(GameMode::Menu)
+    , m_score(-1200)
+
 {
     m_window.setFramerateLimit(60);
     loadLevel();
+    if (!m_font.loadFromFile("assets/fonts/Starborn.ttf"))
+    {
+        std::cout << "Blad ladowania czcionki do wyniku!\n";
+    }
+
+    m_scoreText.setFont(m_font);
+    m_scoreText.setCharacterSize(24);
+    m_scoreText.setFillColor(sf::Color::White);
+    m_scoreText.setPosition(10, 10);
+
 }
 
 void Game::run()
@@ -176,7 +188,10 @@ void Game::resetGameplay()
     m_paletka = Paletka(400.f, 550.f, 100.f, 20.f, 400.f);
     m_pilka = Pilka(400.f, 200.f, 4.f, 3.f, 8.f);
     loadLevel();
-}
+    m_score = -1200;
+    m_scoreText.setString("Punkty: 0");
+
+}   
 
 void Game::updateGameplay(sf::Time dt)
 {
@@ -206,8 +221,17 @@ void Game::updateGameplay(sf::Time dt)
         {
             s.hit();
             m_pilka.bounceY();
+
+          
+            //100 za zielony, 200 za zolty i 300 za czerowny
+            if (s.getHP() == 2) m_score += 100;//po zderzeniu ma 2 czyli wczesniej mial 3
+            else if (s.getHP() == 1) m_score += 200;
+            else if (s.getHP() == 0) m_score += 300;
         }
+        m_scoreText.setString("Punkty: " + std::to_string(m_score));
+
     }
+
 
     // ----- usuwanie zniszczonych bloków -----
     m_bloki.erase(
@@ -231,4 +255,6 @@ void Game::renderGameplay()
 
     for (auto& blok : m_bloki)
         blok.draw(m_window);
+
+    m_window.draw(m_scoreText);
 }
