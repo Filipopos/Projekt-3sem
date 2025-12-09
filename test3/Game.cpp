@@ -1,5 +1,5 @@
 ﻿#include "Game.h"
-#include "GameState.h" 
+#include <iostream>
 
 Game::Game()
     : m_window(sf::VideoMode({ 800, 600 }), "Arkanoid")
@@ -7,21 +7,17 @@ Game::Game()
     , m_paletka(400.f, 550.f, 100.f, 20.f, 400.f)
     , m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
     , m_state(GameMode::Menu)
-    , m_score(-1200)
-
+    , m_score(0)
 {
     m_window.setFramerateLimit(60);
-    loadLevel();
-    if (!m_font.loadFromFile("assets/fonts/Starborn.ttf"))
-    {
-        std::cout << "Blad ladowania czcionki do wyniku!\n";
-    }
 
+    m_font.loadFromFile("assets/fonts/Starborn.ttf");
     m_scoreText.setFont(m_font);
-    m_scoreText.setCharacterSize(24);
+    m_scoreText.setCharacterSize(28);
     m_scoreText.setFillColor(sf::Color::White);
     m_scoreText.setPosition(10, 10);
 
+    loadLevel1();
 }
 
 void Game::run()
@@ -47,38 +43,43 @@ void Game::processEvents()
         {
             sf::Keyboard::Key key = event.key.code;
 
+            
+            // ZAPIS GRY
+            
             if (key == sf::Keyboard::F5)
             {
                 GameState gs;
-                gs.capture(m_paletka, m_pilka, m_bloki);
+                gs.capture(m_paletka, m_pilka, m_bloki, m_score);
 
                 if (gs.saveToFile("save.txt"))
                     std::cout << "Zapisano gre!\n";
             }
 
+           
+            // WCZYTANIE GRY
+            
             if (key == sf::Keyboard::F9)
             {
                 GameState gs;
                 if (gs.loadFromFile("save.txt"))
                 {
-                    gs.apply(m_paletka, m_pilka, m_bloki);
+                    gs.apply(m_paletka, m_pilka, m_bloki, m_score);
+
+                    m_score = gs.getScore();
                     std::cout << "Wczytano gre!\n";
                 }
             }
 
-
-//menu
+            // ====================== MENU ======================
             if (m_state == GameMode::Menu)
             {
                 if (key == sf::Keyboard::Up)
                 {
-                    
                     m_menu.przesunG();
                 }
 
                 if (key == sf::Keyboard::Down)
                 {
-                    
                     m_menu.przesunD();
                 }
 
@@ -86,35 +87,49 @@ void Game::processEvents()
                 {
                     int selected = m_menu.getSelectedItem();
 
-                    if (selected == 0)   
+                    switch (selected)
                     {
+                    case 0: // NOWA GRA
                         resetGameplay();
                         m_state = GameMode::Playing;
-                    }
-                    else if (selected == 1)   
+                        break;
+
+                    case 1: // WCZYTAJ GRE
                     {
                         GameState gs;
                         if (gs.loadFromFile("save.txt"))
                         {
-                            gs.apply(m_paletka, m_pilka, m_bloki);
+                            gs.apply(m_paletka, m_pilka, m_bloki, m_score);
+
+                            m_score = gs.getScore();
                             m_state = GameMode::Playing;
-                            std::cout << "Wczytano gre!\n";
                         }
-                        else
-                        {
-                            std::cout << "Brak pliku save.txt lub blad w pliku.\n";
-                        }
+                        break;
                     }
-                    else if (selected == 2)   
-                    {
-                        std::cout << "Brak systemu wynikow.\n";
-                    }
-                    else if (selected == 3) 
-                    {
+
+                    case 2: // poziom 1
+                        resetGameplay();
+                        loadLevel1();
+                        m_state = GameMode::Playing;
+                        break;
+
+                    case 3: // poziom 2
+                        resetGameplay();
+                        loadLevel2();
+                        m_state = GameMode::Playing;
+                        break;
+
+                    case 4: // poziom 3
+                        resetGameplay();
+                        loadLevel3();
+                        m_state = GameMode::Playing;
+                        break;
+
+                    case 5: // WYJŚCIE
                         m_window.close();
+                        break;
                     }
                 }
-
             }
 
             // =================== GAMEPLAY ====================
@@ -145,12 +160,85 @@ void Game::render()
     m_window.display();
 }
 
+//                          GAMEPLAY
 
 
-//gameplay
+void Game::resetGameplay()
+{
+    m_paletka = Paletka(400.f, 550.f, 100.f, 20.f, 400.f);
+    m_pilka = Pilka(400.f, 200.f, 4.f, 3.f, 8.f);
+    m_score = 0;
+}
+
+void Game::updateGameplay(sf::Time dt)
+{
+    float t = dt.asSeconds();
+
+    // Ruch paletki
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        m_paletka.moveLeft(t);
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        m_paletka.moveRight(t);
+
+    m_paletka.clampToBounds(800);
+
+    // Ruch piłki
+    m_pilka.move(t);
+    m_pilka.collideWalls(800, 600);
+    m_pilka.collidePaddle(m_paletka);
+
+    // Kolizje z blokami
+    for (auto& s : m_bloki)
+    {
+        if (!s.isDestroyed() &&
+            m_pilka.getBounds().intersects(s.getBounds()))
+        {
+            s.hit();
+            m_pilka.bounceY();
+            m_score += 10;
+        }
+    }
+
+    // Usuwanie zniszczonych
+    m_bloki.erase(
+        std::remove_if(m_bloki.begin(), m_bloki.end(),
+            [](const Stone& s) { return s.isDestroyed(); }),
+        m_bloki.end()
+    );
+
+    // Czy piłka spadła
+    if (m_pilka.getY() > 600)
+    {
+        m_state = GameMode::Menu;
+    }
+
+    m_scoreText.setString("Punkty: " + std::to_string(m_score));
+}
+
+void Game::renderGameplay()
+{
+    m_paletka.draw(m_window);
+    m_pilka.draw(m_window);
+
+    for (auto& blok : m_bloki)
+        blok.draw(m_window);
+
+    m_window.draw(m_scoreText);
+}
+
+
+//LEVELS
 
 
 void Game::loadLevel()
+{
+    loadLevel1();
+}
+
+void Game::loadLevel1()
 {
     m_bloki.clear();
 
@@ -174,87 +262,73 @@ void Game::loadLevel()
             if (r < 2)      hp = 3;
             else if (r < 4) hp = 2;
 
-            m_bloki.emplace_back(
-                sf::Vector2f(x, y),
+            m_bloki.emplace_back(sf::Vector2f(x, y),
                 sf::Vector2f(blockW, blockH),
-                hp
-            );
+                hp);
         }
     }
 }
 
-void Game::resetGameplay()
+void Game::loadLevel2()
 {
-    m_paletka = Paletka(400.f, 550.f, 100.f, 20.f, 400.f);
-    m_pilka = Pilka(400.f, 200.f, 4.f, 3.f, 8.f);
-    loadLevel();
-    m_score = -1200;
-    m_scoreText.setString("Punkty: 0");
+    m_bloki.clear();
 
-}   
+    const int rows = 5;
+    const int cols = 10;
 
-void Game::updateGameplay(sf::Time dt)
-{
-    float t = dt.asSeconds();
+    const float blockH = 25.f;
+    const float gap = 2.f;
+    const float startY = 80.f;
 
-    // ----- sterowanie paletką -----
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-        m_paletka.moveLeft(t);
+    float blockW = (800.f - (cols + 1) * gap) / cols;
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-        m_paletka.moveRight(t);
-
-    m_paletka.clampToBounds(800);
-
-    // ----- ruch pilki -----
-    m_pilka.move(t);
-    m_pilka.collideWalls(800, 600);
-    m_pilka.collidePaddle(m_paletka);
-
-    // ----- kolizje z cegłami -----
-    for (auto& s : m_bloki)
+    for (int r = 0; r < rows; r++)
     {
-        if (!s.isDestroyed() &&
-            m_pilka.getBounds().intersects(s.getBounds()))
+        for (int c = 0; c < cols; c++)
         {
-            s.hit();
-            m_pilka.bounceY();
+            float x = gap + c * (blockW + gap);
+            float y = startY + r * (blockH + gap);
 
-          
-            //100 za zielony, 200 za zolty i 300 za czerowny
-            if (s.getHP() == 2) m_score += 100;//po zderzeniu ma 2 czyli wczesniej mial 3
-            else if (s.getHP() == 1) m_score += 200;
-            else if (s.getHP() == 0) m_score += 300;
+            int hp = (r % 2 == 0) ? 2 : 1;
+
+            m_bloki.emplace_back(sf::Vector2f(x, y),
+                sf::Vector2f(blockW, blockH),
+                hp);
         }
-        m_scoreText.setString("Punkty: " + std::to_string(m_score));
-
-    }
-
-
-    // ----- usuwanie zniszczonych bloków -----
-    m_bloki.erase(
-        std::remove_if(m_bloki.begin(), m_bloki.end(),
-            [](const Stone& s) { return s.isDestroyed(); }),
-        m_bloki.end()
-    );
-
-    // ----- reset po straceniu piłki -----
-    if (m_pilka.getY() > 600)
-    {
-        resetGameplay();
-        m_state = GameMode::Menu;
     }
 }
 
-void Game::renderGameplay()
+void Game::loadLevel3()
 {
-    m_paletka.draw(m_window);
-    m_pilka.draw(m_window);
+    m_bloki.clear();
 
-    for (auto& blok : m_bloki)
-        blok.draw(m_window);
+    const float blockH = 25.f;
+    const float gap = 3.f;
+    const float startY = 60.f;
 
-    m_window.draw(m_scoreText);
+    float blockW = 80.f;
+
+    for (int c = 0; c < 8; c++)
+    {
+        float x = 50 + c * (blockW + gap);
+        m_bloki.emplace_back(sf::Vector2f(x, startY),
+            sf::Vector2f(blockW, blockH),
+            3);
+    }
+
+    for (int c = 0; c < 6; c++)
+    {
+        float x = 100 + c * (blockW + gap);
+        m_bloki.emplace_back(sf::Vector2f(x, startY + 40),
+            sf::Vector2f(blockW, blockH),
+            2);
+    }
+
+    for (int c = 0; c < 4; c++)
+    {
+        float x = 150 + c * (blockW + gap);
+        m_bloki.emplace_back(sf::Vector2f(x, startY + 80),
+            sf::Vector2f(blockW, blockH),
+            1);
+    }
 }

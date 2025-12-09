@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <SFML/Graphics.hpp>
 
-#define MAX_LICZBA_POZIOMOW 4
+#define MAX_LICZBA_POZIOMOW 6
 
 class Menu
 {
@@ -15,38 +15,28 @@ public:
     {
         wybraneOpcje = 0;
 
-        if (!font.loadFromFile("assets/fonts/Starborn.ttf"))
+        font.loadFromFile("assets/fonts/Starborn.ttf");
+
+        const char* labels[MAX_LICZBA_POZIOMOW] =
         {
-            //std::cout << "nie moge zaladowac czcionki " << std::endl;
+            "Nowa gra",
+            "Wczytaj gre",
+            "Poziom 1",
+            "Poziom 2",
+            "Poziom 3",
+            "Wyjscie"
+        };
+
+        for (int i = 0; i < MAX_LICZBA_POZIOMOW; i++)
+        {
+            opcje[i].setFont(font);
+            opcje[i].setCharacterSize(40);
+            opcje[i].setString(labels[i]);
+            opcje[i].setFillColor(sf::Color::White);
+            opcje[i].setPosition(szerokosc / 2 - 100, wysokosc / 4 + i * 60);
         }
 
-//nowa gra
-        opcje[0].setFont(font);
         opcje[0].setFillColor(sf::Color::Red);
-        opcje[0].setString("Nowa gra");
-        opcje[0].setCharacterSize(40);
-        opcje[0].setPosition(szerokosc / 2 - 100, wysokosc / 4);
-
-//wczytaj gre
-        opcje[1].setFont(font);
-        opcje[1].setFillColor(sf::Color::White);
-        opcje[1].setString("Wczytaj gre");
-        opcje[1].setCharacterSize(40);
-        opcje[1].setPosition(szerokosc / 2 - 110, wysokosc / 4 + 60);
-
-//wyniki
-        opcje[2].setFont(font);
-        opcje[2].setFillColor(sf::Color::White);
-        opcje[2].setString("Wyniki");
-        opcje[2].setCharacterSize(40);
-        opcje[2].setPosition(szerokosc / 2 - 80, wysokosc / 4 + 120);
-
-//wyjscie
-        opcje[3].setFont(font);
-        opcje[3].setFillColor(sf::Color::White);
-        opcje[3].setString("Wyjscie");
-        opcje[3].setCharacterSize(40);
-        opcje[3].setPosition(szerokosc / 2 - 80, wysokosc / 4 + 180);
     }
 
     void draw(sf::RenderWindow& window)
@@ -75,8 +65,5 @@ public:
         }
     }
 
-    int getSelectedItem() const
-    {
-        return wybraneOpcje;
-    }
+    int getSelectedItem() const { return wybraneOpcje; }
 };

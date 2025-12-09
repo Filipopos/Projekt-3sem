@@ -10,35 +10,34 @@
 class Game
 {
 private:
-    enum class GameMode{ Menu, Playing, Exiting };
+    enum class GameMode { Menu, Playing };
 
     sf::RenderWindow m_window;
     sf::Clock m_deltaClock;
 
     GameMode m_state;
-
-   
     Menu m_menu;
 
-   
-
-   
     Paletka m_paletka;
     Pilka   m_pilka;
     std::vector<Stone> m_bloki;
+
     int m_score;
     sf::Font m_font;
     sf::Text m_scoreText;
 
-    
     void processEvents();
     void update(sf::Time dt);
     void render();
 
-    
     void updateGameplay(sf::Time dt);
     void renderGameplay();
-    void loadLevel();
+
+    void loadLevel();   // domyslny poziom
+    void loadLevel1();
+    void loadLevel2();
+    void loadLevel3();
+
     void resetGameplay();
 
 public:
