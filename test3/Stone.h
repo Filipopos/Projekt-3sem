@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 
+class Pilka;
+
 class Stone : public sf::RectangleShape {
 private:
     int hp;
@@ -19,5 +21,7 @@ public:
     void draw(sf::RenderTarget& window);
 
     int getHP() const { return hp; }
+
+    bool checkCollision(Pilka& pilka);
 
 };

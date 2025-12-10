@@ -6,6 +6,7 @@
 #include "pilkah.h"
 #include "Stone.h"
 #include "GameState.h"
+#include "Boss.h"
 
 class Game
 {
@@ -22,6 +23,8 @@ private:
     Pilka   m_pilka;
     std::vector<Stone> m_bloki;
 
+    Boss m_boss;
+
     int m_score;
     sf::Font m_font;
     sf::Text m_scoreText;
@@ -33,7 +36,7 @@ private:
     void updateGameplay(sf::Time dt);
     void renderGameplay();
 
-    void loadLevel();   // domyslny poziom
+    
     void loadLevel1();
     void loadLevel2();
     void loadLevel3();

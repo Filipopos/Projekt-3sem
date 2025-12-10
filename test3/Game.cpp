@@ -1,22 +1,23 @@
 ﻿#include "Game.h"
 #include <iostream>
+#include <algorithm>//potrzebne do usuwania blokow
 
 Game::Game()
     : m_window(sf::VideoMode({ 800, 600 }), "Arkanoid")
     , m_menu(m_window.getSize().x, m_window.getSize().y)
     , m_paletka(400.f, 550.f, 100.f, 20.f, 400.f)
-    , m_pilka(400.f, 200.f, 4.f, 3.f, 8.f)
+    , m_pilka(400.f, 310.f, 4.f, 3.f, 8.f)
+    , m_boss(600.f, 10.f)
     , m_state(GameMode::Menu)
     , m_score(0)
 {
-    m_window.setFramerateLimit(60);
+    m_window.setFramerateLimit(60); 
 
     m_font.loadFromFile("assets/fonts/Starborn.ttf");
     m_scoreText.setFont(m_font);
     m_scoreText.setCharacterSize(28);
     m_scoreText.setFillColor(sf::Color::White);
     m_scoreText.setPosition(10, 10);
-
     loadLevel1();
 }
 
@@ -33,115 +34,59 @@ void Game::run()
 void Game::processEvents()
 {
     sf::Event event;
-
     while (m_window.pollEvent(event))
     {
         if (event.type == sf::Event::Closed)
             m_window.close();
 
+        // zapis odczyt, zostaly w game bo dotycza calej gry
         if (event.type == sf::Event::KeyPressed)
         {
-            sf::Keyboard::Key key = event.key.code;
-
-            
-            // ZAPIS GRY
-            
-            if (key == sf::Keyboard::F5)
-            {
+            if (event.key.code == sf::Keyboard::F5) {
                 GameState gs;
                 gs.capture(m_paletka, m_pilka, m_bloki, m_score);
-
-                if (gs.saveToFile("save.txt"))
-                    std::cout << "Zapisano gre!\n";
+                if (gs.saveToFile("save.txt")) std::cout << "Zapisano gre!\n";
             }
-
-           
-            // WCZYTANIE GRY
-            
-            if (key == sf::Keyboard::F9)
-            {
+            if (event.key.code == sf::Keyboard::F9) {
                 GameState gs;
-                if (gs.loadFromFile("save.txt"))
-                {
+                if (gs.loadFromFile("save.txt")) {
                     gs.apply(m_paletka, m_pilka, m_bloki, m_score);
-
                     m_score = gs.getScore();
+                    m_state = GameMode::Playing;
                     std::cout << "Wczytano gre!\n";
                 }
             }
-
-            // ====================== MENU ======================
-            if (m_state == GameMode::Menu)
-            {
-                if (key == sf::Keyboard::Up)
-                {
-                    m_menu.przesunG();
-                }
-
-                if (key == sf::Keyboard::Down)
-                {
-                    m_menu.przesunD();
-                }
-
-                if (key == sf::Keyboard::Enter)
-                {
-                    int selected = m_menu.getSelectedItem();
-
-                    switch (selected)
-                    {
-                    case 0: // NOWA GRA
-                        resetGameplay();
-                        m_state = GameMode::Playing;
-                        break;
-
-                    case 1: // WCZYTAJ GRE
-                    {
-                        GameState gs;
-                        if (gs.loadFromFile("save.txt"))
-                        {
-                            gs.apply(m_paletka, m_pilka, m_bloki, m_score);
-
-                            m_score = gs.getScore();
-                            m_state = GameMode::Playing;
-                        }
-                        break;
-                    }
-
-                    case 2: // poziom 1
-                        resetGameplay();
-                        loadLevel1();
-                        m_state = GameMode::Playing;
-                        break;
-
-                    case 3: // poziom 2
-                        resetGameplay();
-                        loadLevel2();
-                        m_state = GameMode::Playing;
-                        break;
-
-                    case 4: // poziom 3
-                        resetGameplay();
-                        loadLevel3();
-                        m_state = GameMode::Playing;
-                        break;
-
-                    case 5: // WYJŚCIE
-                        m_window.close();
-                        break;
-                    }
-                }
+            // Wyjscie z gry do menu
+            if (event.key.code == sf::Keyboard::Escape && m_state == GameMode::Playing) {
+                m_state = GameMode::Menu;
             }
+        }
 
-            // =================== GAMEPLAY ====================
-            else if (m_state == GameMode::Playing)
+        
+        if (m_state == GameMode::Menu)
+        {
+            
+            int action = m_menu.handleInput(event);
+            //0-leve1, 1-level2, 2-level3, 3-wczytaj, 4-wyjdz
+            if (action != -1)
             {
-                if (key == sf::Keyboard::Escape)
-                    m_state = GameMode::Menu;
+                if (action == 0) { resetGameplay(); loadLevel1(); m_state = GameMode::Playing; }
+                else if (action == 1) { resetGameplay(); loadLevel2(); m_state = GameMode::Playing; }
+                else if (action == 2) { resetGameplay(); loadLevel3(); m_state = GameMode::Playing; }
+                else if (action == 3) {
+                    
+                    GameState gs;
+                    if (gs.loadFromFile("save.txt")) {
+                        gs.apply(m_paletka, m_pilka, m_bloki, m_score);
+                        m_score = gs.getScore();
+                        m_state = GameMode::Playing;
+                    }
+                }
+                else if (action == 4) { m_window.close(); }
             }
         }
     }
 }
-
 void Game::update(sf::Time dt)
 {
     if (m_state == GameMode::Playing)
@@ -160,56 +105,59 @@ void Game::render()
     m_window.display();
 }
 
-//                          GAMEPLAY
+
 
 
 void Game::resetGameplay()
 {
     m_paletka = Paletka(400.f, 550.f, 100.f, 20.f, 400.f);
-    m_pilka = Pilka(400.f, 200.f, 4.f, 3.f, 8.f);
+    m_pilka = Pilka(400.f, 310.f, 4.f, 3.f, 8.f);
     m_score = 0;
+    m_boss = Boss(600.f, 10.f);
+
 }
 
 void Game::updateGameplay(sf::Time dt)
 {
     float t = dt.asSeconds();
+    //logika gry i kolizji, wszystko w klasach odpowiednich jest
+    m_paletka.update(t, 800.f); 
 
-    // Ruch paletki
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-        m_paletka.moveLeft(t);
+    
+    m_pilka.update(t, 800.f, 600.f);
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-        m_paletka.moveRight(t);
+    
+    m_pilka.resolvePaddleCollision(m_paletka);
 
-    m_paletka.clampToBounds(800);
-
-    // Ruch piłki
-    m_pilka.move(t);
-    m_pilka.collideWalls(800, 600);
-    m_pilka.collidePaddle(m_paletka);
-
-    // Kolizje z blokami
     for (auto& s : m_bloki)
     {
-        if (!s.isDestroyed() &&
-            m_pilka.getBounds().intersects(s.getBounds()))
+        
+        if (s.checkCollision(m_pilka))
         {
-            s.hit();
-            m_pilka.bounceY();
-            m_score += 10;
+            m_score += 10; 
         }
     }
 
-    // Usuwanie zniszczonych
+    
     m_bloki.erase(
         std::remove_if(m_bloki.begin(), m_bloki.end(),
             [](const Stone& s) { return s.isDestroyed(); }),
         m_bloki.end()
     );
 
-    // Czy piłka spadła
+    //boss nasz
+    m_boss.update(t);
+
+    if (m_boss.checkCollision(m_pilka))
+    {
+        std::cout << "============================" << std::endl;
+        std::cout << "WYGRALES!" << std::endl;
+        std::cout << "============================" << std::endl;
+        m_state = GameMode::Menu;
+        return;
+    }
+
+    //przegrana
     if (m_pilka.getY() > 600)
     {
         m_state = GameMode::Menu;
@@ -226,17 +174,13 @@ void Game::renderGameplay()
     for (auto& blok : m_bloki)
         blok.draw(m_window);
 
+    m_boss.draw(m_window);
+
     m_window.draw(m_scoreText);
 }
 
 
-//LEVELS
-
-
-void Game::loadLevel()
-{
-    loadLevel1();
-}
+//po kolei wszystkie levele
 
 void Game::loadLevel1()
 {

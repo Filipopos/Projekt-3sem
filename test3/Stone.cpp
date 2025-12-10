@@ -1,4 +1,5 @@
 #include "Stone.h"
+#include "pilkah.h"
 
 
 const std::array<sf::Color, 4> Stone::colorLut = {
@@ -46,3 +47,14 @@ void Stone::draw(sf::RenderTarget& window)
         window.draw(*this);
 }
 
+//jak zniszczony to ignoruj, jak nie to tam dalej njest
+bool Stone::checkCollision(Pilka& pilka) {
+    if (destroyed) return false; 
+
+    if (pilka.getBounds().intersects(getBounds())) {
+        hit();              
+        pilka.bounceYForce(); //bounceYForce-wymuszamy odbicie
+        return true;        
+    }
+    return false;
+}

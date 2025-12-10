@@ -132,12 +132,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Paddle.cpp" />
+    <ClCompile Include="pilkah.cpp" />
     <ClCompile Include="pilkah.h" />
     <ClCompile Include="Stone.cpp" />
     <ClCompile Include="test3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Boss.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="Stone.h" />

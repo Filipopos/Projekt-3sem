@@ -25,13 +25,12 @@ private:
 public:
 
     
-    //   GETTERY / SETTERY SCORE
+    //getter/setter do wyniku
     
     void setScore(int s) { score = s; }
     int  getScore() const { return score; }
 
-   
-    //   CAPTURE
+
    
     void capture(const Paletka& p, const Pilka& b, const std::vector<Stone>& stones, int points)
     {
@@ -58,7 +57,7 @@ public:
     }
 
      
-    //   SAVE
+    //savuje i dodaje opisy do pliku
     
     bool saveToFile(const std::string& filename)
     {
@@ -85,7 +84,7 @@ public:
     }
 
     
-    //   LOAD
+    
     
     bool loadFromFile(const std::string& filename)
     {
@@ -116,7 +115,7 @@ public:
     }
 
     
-    //   APPLY
+    
     
     void apply(Paletka& p, Pilka& b, std::vector<Stone>& stones, int& outScore)
     {
