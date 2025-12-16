@@ -36,6 +36,9 @@
     <ClCompile Include="pilkah.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="levele.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Paddle.h">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Boss.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="levele.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

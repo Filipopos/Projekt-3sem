@@ -7,6 +7,7 @@
 #include "Stone.h"
 #include "GameState.h"
 #include "Boss.h"
+#include "levele.h"
 
 class Game
 {
@@ -36,11 +37,12 @@ private:
     void updateGameplay(sf::Time dt);
     void renderGameplay();
 
-    
+    /*
     void loadLevel1();
     void loadLevel2();
     void loadLevel3();
-
+    */
+    void loadLevel(int levelNumber);
     void resetGameplay();
 
 public:

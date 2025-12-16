@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="levele.cpp" />
     <ClCompile Include="Paddle.cpp" />
     <ClCompile Include="pilkah.cpp" />
     <ClCompile Include="pilkah.h" />
@@ -143,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="Boss.h" />
     <ClInclude Include="GameState.h" />
+    <ClInclude Include="levele.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="Stone.h" />
     <ClInclude Include="Game.h" />

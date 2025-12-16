@@ -18,7 +18,7 @@ Game::Game()
     m_scoreText.setCharacterSize(28);
     m_scoreText.setFillColor(sf::Color::White);
     m_scoreText.setPosition(10, 10);
-    loadLevel1();
+    loadLevel(1);
 }
 
 void Game::run()
@@ -70,9 +70,13 @@ void Game::processEvents()
             //0-leve1, 1-level2, 2-level3, 3-wczytaj, 4-wyjdz
             if (action != -1)
             {
-                if (action == 0) { resetGameplay(); loadLevel1(); m_state = GameMode::Playing; }
-                else if (action == 1) { resetGameplay(); loadLevel2(); m_state = GameMode::Playing; }
-                else if (action == 2) { resetGameplay(); loadLevel3(); m_state = GameMode::Playing; }
+                
+                
+                if (action == 0) { resetGameplay(); loadLevel(1); m_state = GameMode::Playing; }
+                else if (action == 1) { resetGameplay(); loadLevel(2); m_state = GameMode::Playing; }
+                else if (action == 2) { resetGameplay(); loadLevel(3); m_state = GameMode::Playing; }
+                   
+                
                 else if (action == 3) {
                     
                     GameState gs;
@@ -180,99 +184,18 @@ void Game::renderGameplay()
 }
 
 
-//po kolei wszystkie levele
-
-void Game::loadLevel1()
+void Game::loadLevel(int levelNumber)
 {
     m_bloki.clear();
 
-    const int rows = 7;
-    const int cols = 6;
-
-    const float blockH = 25.f;
-    const float gap = 2.f;
-    const float startY = 50.f;
-
-    float blockW = (800.f - (cols + 1) * gap) / cols;
-
-    for (int r = 0; r < rows; r++)
-    {
-        for (int c = 0; c < cols; c++)
-        {
-            float x = gap + c * (blockW + gap);
-            float y = startY + r * (blockH + gap);
-
-            int hp = 1;
-            if (r < 2)      hp = 3;
-            else if (r < 4) hp = 2;
-
-            m_bloki.emplace_back(sf::Vector2f(x, y),
-                sf::Vector2f(blockW, blockH),
-                hp);
-        }
+    if (levelNumber == 1) {
+        
+        m_bloki = LevelManager::loadLevel1();
     }
-}
-
-void Game::loadLevel2()
-{
-    m_bloki.clear();
-
-    const int rows = 5;
-    const int cols = 10;
-
-    const float blockH = 25.f;
-    const float gap = 2.f;
-    const float startY = 80.f;
-
-    float blockW = (800.f - (cols + 1) * gap) / cols;
-
-    for (int r = 0; r < rows; r++)
-    {
-        for (int c = 0; c < cols; c++)
-        {
-            float x = gap + c * (blockW + gap);
-            float y = startY + r * (blockH + gap);
-
-            int hp = (r % 2 == 0) ? 2 : 1;
-
-            m_bloki.emplace_back(sf::Vector2f(x, y),
-                sf::Vector2f(blockW, blockH),
-                hp);
-        }
+    else if (levelNumber == 2) {
+        m_bloki = LevelManager::loadLevel2();
     }
-}
-
-void Game::loadLevel3()
-{
-    m_bloki.clear();
-
-    const float blockH = 25.f;
-    const float gap = 3.f;
-    const float startY = 60.f;
-
-    float blockW = 80.f;
-
-    for (int c = 0; c < 8; c++)
-    {
-        float x = 50 + c * (blockW + gap);
-        m_bloki.emplace_back(sf::Vector2f(x, startY),
-            sf::Vector2f(blockW, blockH),
-            3);
-    }
-
-    for (int c = 0; c < 6; c++)
-    {
-        float x = 100 + c * (blockW + gap);
-        m_bloki.emplace_back(sf::Vector2f(x, startY + 40),
-            sf::Vector2f(blockW, blockH),
-            2);
-    }
-
-    for (int c = 0; c < 4; c++)
-    {
-        float x = 150 + c * (blockW + gap);
-        m_bloki.emplace_back(sf::Vector2f(x, startY + 80),
-            sf::Vector2f(blockW, blockH),
-            1);
+    else if (levelNumber == 3) {
+        m_bloki = LevelManager::loadLevel3();
     }
 }
